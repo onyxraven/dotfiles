@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+prtemplate=''
+if [ -e "$(git root)/PULL_REQUEST_TEMPLATE.md" ]; then
+    prtemplate="-F $(git root)/PULL_REQUEST_TEMPLATE.md"
+elif [ -e "$(git root)/.github/PULL_REQUEST_TEMPLATE.md" ]; then
+    prtemplate="-F $(git root)/.github/PULL_REQUEST_TEMPLATE.md"
+fi
+
+hub pull-request $prtemplate -e -o

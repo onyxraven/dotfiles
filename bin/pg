@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+set -e
+
+cleanup() {
+    rm ~/.pgpass || true
+}
+trap cleanup EXIT
+
+. ~/.zgen/onyxraven/zsh-osx-keychain-master/zsh-osx-keychain.plugin.zsh
+
+str=$(keychain-environment-variable $1)
+shift
+echo $str | cat > ~/.pgpass
+chmod 600 ~/.pgpass
+a=("${(@s/:/)str}")
+psql -h ${a[1]} -p ${a[2]} ${a[3]} ${a[4]} "$@"
+
+rm ~/.pgpass || true

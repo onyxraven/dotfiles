@@ -1,0 +1,8 @@
+# Delete
+"\e[3~": delete-char
+#   
+# Home
+"\e[1~": beginning-of-line
+      
+# End
+"\e[4~": end-of-line

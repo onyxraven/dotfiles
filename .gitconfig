@@ -1,0 +1,48 @@
+[user]
+[global]
+[core]
+    excludesfile = ~/.gitignore_global
+[alias]
+    co = checkout
+    st = status
+    up = checkout
+    pager = less -F -E -X -m
+    list-branch-tests = "! git diff --diff-filter=ACMRTUXB --name-only develop -- spec test | egrep '_(spec|test).rb' "
+    list-outgoing-tests = "! git diff --diff-filter=ACMRTUXB --name-only `git-tracking-name` -- spec test | egrep '_(spec|test).rb' "
+    list-changed-tests = "! git diff --diff-filter=ACMRTUXB --name-only HEAD -- spec test | egrep '_(spec|test).rb' "
+    list-cached-tests = "! git diff --cached --diff-filter=ACMRTUXB --name-only HEAD -- spec test | egrep '_(spec|test).rb' "
+    lol = log --pretty=oneline --abbrev-commit --graph --decorate
+    rms = "!f(){ git rm --cached \"$1\";rm -r \"$1\";git config -f .gitmodules --remove-section \"submodule.$1\";git config -f .git/config --remove-section \"submodule.$1\";git add .gitmodules; }; f"
+    inc = !(git fetch --quiet && git log --pretty=oneline --abbrev-commit --graph ..$(git rev-parse --abbrev-ref --symbolic-full-name @{u}))
+    out = !(git fetch --quiet && git log --pretty=oneline --abbrev-commit --graph $(git rev-parse --abbrev-ref --symbolic-full-name @{u})..)
+    pushf = push --force-with-lease
+[merge]
+    tool = p4merge
+[mergetool "diffmerge"]
+    cmd = diffmerge --merge --result=$MERGED $LOCAL $BASE $REMOTE
+    trustExitCode = false
+[mergetool "p4merge"]
+    cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge "\"$PWD/$BASE\"" "\"$PWD/$REMOTE\"" "\"$PWD/$LOCAL\"" "\"$PWD/$MERGED\""
+    keepTemporaries = false
+    trustExitCode = false
+[diff]
+    tool = p4merge
+[difftool "p4merge"]
+    cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge "\"$REMOTE\"" "\"$LOCAL\""
+[color]
+    branch = auto
+    diff = auto
+    status = auto
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    required = true
+    process = git-lfs filter-process
+[gpg]
+    program = gpg2
+[includeIf "gitdir:~/src/"]
+    path = ~/src/.gitconfig
+[commit]
+    gpgsign = true
+[diff "blackbox"]
+    textconv = gpg --use-agent -q --batch --decrypt
