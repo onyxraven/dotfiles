@@ -1,4 +1,10 @@
 # -----------------------------------------------
+# nice login stuff
+# -----------------------------------------------
+
+uname -nv
+
+# -----------------------------------------------
 # Set up the Environment
 # -----------------------------------------------
 
@@ -13,9 +19,23 @@ bindkey -e #emacs mode
 autoload zmv
 zmodload zsh/mathfunc
 
+# zmodload zsh/zprof
+
+# -----------------------------------------------
+# preload any necessary scripts
+# -----------------------------------------------
+
+source ~/.iterm2_shell_integration.zsh
+
 # -----------------------------------------------
 # zgen
 # -----------------------------------------------
+
+# do any pre-zgen config
+export NVM_LAZY_LOAD=true
+export ZSH_AUTOSUGGEST_USE_ASYNC=1
+export DISABLE_AUTO_UPDATE=true
+export DISABLE_UPDATE_PROMPT=true
 
 # load zgen
 source "${HOME}/.zgen/zgen.zsh"
@@ -27,6 +47,7 @@ if ! zgen saved; then
   zgen oh-my-zsh
 
   # plugins
+  zgen oh-my-zsh plugins/asdf
   zgen oh-my-zsh plugins/aws
   zgen oh-my-zsh plugins/branch
   zgen oh-my-zsh plugins/brew
@@ -35,20 +56,19 @@ if ! zgen saved; then
   zgen oh-my-zsh plugins/docker-compose
   zgen oh-my-zsh plugins/emoji
   zgen oh-my-zsh plugins/emotty
+  zgen oh-my-zsh plugins/fzf
   zgen oh-my-zsh plugins/gem
   zgen oh-my-zsh plugins/git
   zgen oh-my-zsh plugins/git-extras
   zgen oh-my-zsh plugins/gitfast
-  zgen oh-my-zsh plugins/github
   zgen oh-my-zsh plugins/golang
   zgen oh-my-zsh plugins/helm
+  zgen oh-my-zsh plugins/httpie
   zgen oh-my-zsh plugins/iterm2
   zgen oh-my-zsh plugins/kops
   zgen oh-my-zsh plugins/kubectl
   zgen oh-my-zsh plugins/npm
-  zgen oh-my-zsh plugins/nvm
   zgen oh-my-zsh plugins/osx
-  zgen oh-my-zsh plugins/rbenv
   zgen oh-my-zsh plugins/ruby
   zgen oh-my-zsh plugins/shrink-path
   zgen oh-my-zsh plugins/terraform
@@ -56,150 +76,167 @@ if ! zgen saved; then
   zgen oh-my-zsh plugins/yarn
 
   zgen load /usr/local/share/zsh/site-functions
+  zgen load Aloxaf/fzf-tab
   zgen load axtl/gpg-agent.zsh
   zgen load blimmer/zsh-aws-vault
   zgen load caarlos0/zsh-add-upstream
   zgen load caarlos0/zsh-git-sync
   zgen load chrissicool/zsh-256color
+  zgen load DarrinTisdale/zsh-aliases-exa
   zgen load elstgav/branch-manager
+  zgen load lukechilds/zsh-nvm
   zgen load mafredri/zsh-async
+  zgen load MichaelAquilina/zsh-you-should-use
   zgen load onyxraven/zsh-osx-keychain
-  zgen load psprint/history-search-multi-word
-  zgen load StackExchange/blackbox
+  zgen load onyxraven/zsh-saml2aws
+  # zgen load psprint/history-search-multi-word # use instead of fzf
   zgen load superbrothers/zsh-kubectl-prompt
+  zgen load willghatch/zsh-cdr
   zgen load zdharma/fast-syntax-highlighting
   zgen load zsh-users/zsh-completions src
-
-  # specifically load late
-  zgen load intelfx/pure
 
   # save all to init script
   zgen save
 fi
 
-autoload -U bashcompinit
-bashcompinit
-
-# -----------------------------------------------
-# git prompt
-# -----------------------------------------------
-
-export emotty_set=nature
-
-# PURE_GIT_FETCH=0
-# PURE_GIT_UNTRACKED=0
-PURE_PROMPT_SYMBOL='❯'
-PURE_GIT_DOWN_ARROW='↓'
-PURE_GIT_UP_ARROW='↑'
-RPROMPT='❮%F{grey}%*'
-PROMPT='%(?.${PURE_PROMPT_SYMBOL}.%F{red}✖)%f '
-
-autoload -U promptinit
-promptinit
-# prompt pure
-
-_pure_aws_vault() {
-  if [ -n "$AWS_VAULT" ]; then
-    preprompt+=("%F{cyan} $AWS_VAULT%f")
-  fi
-}
-_pure_shrink_path() {
-  preprompt+=("%F{blue}$(shrink_path -l -t)")
-}
-_pure_tty() {
-  # Use emotty set defined by user, fallback to default
-  local emotty=${_emotty_sets[${emotty_set:-$emotty_default_set}]}
-  # Parse $TTY number, normalizing it to an emotty set index
-  (( tty = (${TTY##/dev/ttys} % ${#${=emotty}}) + 1 ))
-  local character_name=${${=emotty}[tty]}
-  preprompt+=("${emoji[${character_name}]}${emoji2[emoji_style]}")
-}
-
-unset ZSH_KUBECTL_PROMPT_ON
-kprompt() {
-  if [ -z "$1" ] || [ "$1" == "on" ]; then
-    export ZSH_KUBECTL_PROMPT_ON=1
-  else
-    unset ZSH_KUBECTL_PROMPT_ON
-  fi
-}
-_pure_kube_ctx() {
-  if [ -n "$ZSH_KUBECTL_PROMPT" ] && [ -n "$ZSH_KUBECTL_PROMPT_ON" ]; then
-    preprompt+=("%F{magenta}⎈ $ZSH_KUBECTL_PROMPT%f")
-  fi
-}
-
-# Build pure prompt with additional indicators
-prompt_pure_pieces=(
-  _pure_tty
-  _pure_shrink_path
-  _pure_aws_vault
-  _pure_kube_ctx
-  ${prompt_pure_pieces:1}
-)
+autoload -U add-zsh-hook bashcompinit promptinit && bashcompinit && promptinit
+async_init
 
 # -----------------------------------------------
 # zsh Configs
 # -----------------------------------------------
 
-export ZSH_AUTOSUGGEST_USE_ASYNC=1
+export CLICOLOR=yes
+export COLORTERM=yes
+export COMPLETION_WAITING_DOTS="true"
+export GPG=gpg2
+export HISTFILE=~/.zsh_history
+export HISTSIZE=100000000
+export LESS=-RXFEm
+export PAGER=less
+export SAVEHIST=100000000
 
 # -----------------------------------------------
-# env overrides
+# PATHS
+# -----------------------------------------------
+
+export EDITOR="$HOME/bin/codenw"
+export NVM_DIR="$HOME/.nvm"
+export RBENV_ROOT="$HOME/.rbenv"
+export PATH="/usr/local/sbin:$HOME/bin:${GOPATH//://bin:}/bin:$(yarn global bin):$JENV_ROOT/bin:$RBENV_ROOT/bin:$PATH"
+
+# -----------------------------------------------
+# prompt
+# -----------------------------------------------
+
+PURE_PROMPT_SYMBOL='❯'
+PROMPT_NEWLINE=$'\n'
+PROMPT='%F{grey}%D{%H:%M:%S} %F{blue}$(shrink_path -l -t)$prompt_newline${EMOTTY} %(?.${PURE_PROMPT_SYMBOL}.%F{red}✖)%f '
+
+add-zsh-hook precmd _iterm_statusbar_precmd
+function _iterm_statusbar_precmd() {
+  iterm2_set_user_var kubePrompt "☸︎ $(kubectx -c)/$(kubens -c)"
+
+  if [ -n "$SAML2AWS_ROLE" ]; then
+    iterm2_set_user_var awsRole "☁ ${${(@s:/:)SAML2AWS_ROLE}[2]}"
+  else
+    iterm2_set_user_var awsRole ""
+  fi
+}
+
+export emotty_set=nature
+# Use emotty set defined by user, fallback to default
+local emotty=${_emotty_sets[${emotty_set:-$emotty_default_set}]}
+# Parse $TTY number, normalizing it to an emotty set index
+(( tty = (${TTY##/dev/ttys} % ${#${=emotty}}) + 1 ))
+local character_name=${${=emotty}[tty]}
+export EMOTTY="${emoji[${character_name}]}${emoji2[emoji_style]}"
+
+# -----------------------------------------------
+# secrets and creds configs
 # -----------------------------------------------
 
 export AWS_ASSUME_ROLE_TTL=1h
 export AWS_FEDERATION_TOKEN_TTL=12h
 export AWS_SESSION_TTL=36h
-export CLICOLOR=yes
-export COLORTERM=yes
-export COMPLETION_WAITING_DOTS="true"
-export EDITOR="$HOME/bin/codenw"
+export AWS_DEFAULT_REGION="us-east-1"
+export AWS_REGION="$AWS_DEFAULT_REGION"
+export AWS_VAULT_PL_BROWSER=com.google.chrome
+export SAML2AWS_PL_BROWSER=com.google.chrome
+export SAML2AWS_LOGIN_SESSION_DURATION=43200
+export SAML2AWS_SESSION_DURATION=3600
+export SAML2AWS_MFA=OLP
+export SAML2AWS_PROFILE=saml
 export GEM_REPO_LOGIN="$(keychain-environment-variable GEM_REPO_LOGIN)"
+export MVN_REPO_LOGIN=$GEM_REPO_LOGIN
+export NPM_REPO_LOGIN="$GEM_REPO_LOGIN"
 export GITHUB_API_TOKEN="$(keychain-environment-variable GITHUB_API_TOKEN)"
-export GOENV_ROOT="$HOME/.goenv"
-export GOPATH="$HOME/go"
-export GPG=gpg2
-export HISTFILE=~/.zsh_history
-export HISTSIZE=100000000
-export JENV_ROOT="$HOME/.jenv"
-export LESS=-RXFEm
-export NVM_DIR="$HOME/.nvm"
-export PAGER=less
-export PATH="/usr/local/sbin:$PATH:$HOME/bin:${GOPATH//://bin:}/bin:$(yarn global bin):$GOENV_ROOT/bin:$JENV_ROOT/bin:$PATH"
-export RBENV_ROOT=~/.rbenv
-export SAVEHIST=100000000
+export NEW_RELIC_API_KEY="$(keychain-environment-variable NEW_RELIC_API_KEY)"
+export SLACK_WEBHOOK_DEVOPS_URL="$(keychain-environment-variable SLACK_WEBHOOK_DEVOPS_URL)"
+export TF_VAR_datadog_api_key="$(keychain-environment-variable TF_VAR_datadog_api_key)"
+export TF_VAR_datadog_app_key="$(keychain-environment-variable TF_VAR_datadog_app_key)"
+export VAULT_TOKEN="$(keychain-environment-variable VAULT_TOKEN)"
+export MASTER_GENERATOR_LOGIN="$(keychain-environment-variable MASTER_GENERATOR_LOGIN)"
 
 # -----------------------------------------------
-# includes and aliases
+# functions and aliases
 # -----------------------------------------------
 
-source ~/.iterm2_shell_integration.zsh
-
+alias vi='vim'
+alias o='open'
+alias grep='grep --color'
+alias cls='clear'
 alias ack='pt'
-alias ag='pt'
 alias ccc='clipcopy'
 alias ccp='clippaste'
-alias cls='clear'
-alias gmrb='merge_branch'
-alias grbb='rebase_branch'
-alias grep='grep --color'
-alias hideFiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
-alias ls='ls -FG'
 alias npm-exec='PATH=$(npm bin):$PATH'
-alias o='open'
 alias showFiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
-alias vi='vim'
+alias hideFiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
+alias grbb='rebase_branch'
+alias gmrb='merge_branch'
+alias grev='git describe --dirty=-$(date +%F-%H%M%S) --always'
+
+function back() {
+  ack "$@" "$(bundle show --paths)"
+}
+
+function ecrlogin() {
+  if [ -e "$HOME/.docker/config.json" ] && grep -q '"credsStore":\s*"ecr-login"' ~/.docker/config.json; then
+    return
+  fi
+
+  if [ -z "$AWS_VAULT" ]; then
+    saml2aws exec --exec-profile monolith -- aws ecr get-login-password | docker login --username AWS --password-stdin $IBOTTA_REGISTRY_HOST
+  else
+    aws ecr get-login-password | docker login --username AWS --password-stdin $IBOTTA_REGISTRY_HOST
+  fi
+}
+
+alias androidemu="~/Library/Android/sdk/tools/emulator -avd PixelXL29"
+
+# -----------------------------------------------
+# tools
+# -----------------------------------------------
 
 # added by travis gem
-[ -f $HOME/.travis/travis.sh ] && source $HOME/.travis/travis.sh
+[ -f /Users/justinhart/.travis/travis.sh ] && source /Users/justinhart/.travis/travis.sh
 
-eval "$(goenv init -)"
-eval "$(jenv init -)"
+eval "$(rbenv init - --no-rehash zsh)"
+(rbenv rehash &) 2> /dev/null
 
-# -----------------------------------------------
-# nice login stuff
-# -----------------------------------------------
+eval "$(direnv hook zsh)"
 
-uname -nv
+alias awsume=". awsume"
+
+# asdf-java
+. ~/.asdf/plugins/java/set-java-home.zsh
+
+# McFly instead of fzf
+# if [[ -r "/usr/local/opt/mcfly/mcfly.zsh" ]]; then
+#   source "/usr/local/opt/mcfly/mcfly.zsh"
+# fi
+
 echo "------------------------"
+
+# zprof
+

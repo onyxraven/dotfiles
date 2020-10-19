@@ -1,7 +1,6 @@
 [user]
 [global]
 [core]
-    excludesfile = ~/.gitignore_global
 [alias]
     co = checkout
     st = status
@@ -16,8 +15,14 @@
     inc = !(git fetch --quiet && git log --pretty=oneline --abbrev-commit --graph ..$(git rev-parse --abbrev-ref --symbolic-full-name @{u}))
     out = !(git fetch --quiet && git log --pretty=oneline --abbrev-commit --graph $(git rev-parse --abbrev-ref --symbolic-full-name @{u})..)
     pushf = push --force-with-lease
+
 [merge]
-    tool = p4merge
+    tool = vscode
+[diff]
+    tool = vscode
+
+[mergetool "vscode"]
+    cmd = code -n --wait $MERGED
 [mergetool "diffmerge"]
     cmd = diffmerge --merge --result=$MERGED $LOCAL $BASE $REMOTE
     trustExitCode = false
@@ -25,24 +30,43 @@
     cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge "\"$PWD/$BASE\"" "\"$PWD/$REMOTE\"" "\"$PWD/$LOCAL\"" "\"$PWD/$MERGED\""
     keepTemporaries = false
     trustExitCode = false
-[diff]
-    tool = p4merge
+[mergetool "kdiff3"]
+    path = /Applications/kdiff3.app/Contents/MacOS/kdiff3
+    trustExitCode = false
+[mergetool "blackbox"]
+    cmd = blackbox_merge $LOCAL $BASE $REMOTE $MERGED
+    trustExitCode = true
+
+[difftool "vscode"]
+    cmd = code -n --wait --diff $LOCAL $REMOTE
 [difftool "p4merge"]
     cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge "\"$REMOTE\"" "\"$LOCAL\""
+[difftool "kdiff3"]
+    path = /Applications/kdiff3.app/Contents/MacOS/kdiff3
+    trustExitCode = false
+[diff "blackbox"]
+    textconv = gpg --use-agent -q --batch --decrypt
+
 [color]
     branch = auto
     diff = auto
     status = auto
 [filter "lfs"]
-    clean = git-lfs clean -- %f
-    smudge = git-lfs smudge -- %f
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
     required = true
-    process = git-lfs filter-process
+	process = git-lfs filter-process
 [gpg]
     program = gpg2
 [includeIf "gitdir:~/src/"]
     path = ~/src/.gitconfig
 [commit]
     gpgsign = true
-[diff "blackbox"]
-    textconv = gpg --use-agent -q --batch --decrypt
+
+[pull]
+	ff = only
+
+[mergetool "sops-mergetool"]
+        cmd = ~/bin/sops-mergetool.sh "$BASE" "$LOCAL" "$REMOTE" "$MERGED"
+[init]
+	defaultBranch = main
